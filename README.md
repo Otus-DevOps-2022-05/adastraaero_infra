@@ -53,12 +53,17 @@ ACCT_ID=$(yc iam service-account get $SVC_ACCT | grep ^id | awk '{print $2}')
 
 yc resource-manager folder add-access-binding --id $FOLDER_ID --role editor --service-account-id $ACCT_ID
 ```
-Через Web в YandexCloud - нужный каталог - проверяем, что у аккунта в разделе "Роли в каталоге" стоит значение editor.
+Через Web в YandexCloud - нужный каталог - проверяем, что у аккаунта в разделе "Роли в каталоге" стоит значение editor.
   
+Создаём IAM key за пределами репозитория:
+``` 
+ yc iam key create --service-account-id $ACCT_ID --output /my_secret/path/key.json 
+```
   
-  
-  
-  
+### 4. Подготовка, сборка образа через Packer.
+
+Создаем директорию `packer` и внутри файл `ubuntu16.json`, при этом использумем раздел Packer "File Provisioner"
+
   
   
   
