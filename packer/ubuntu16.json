@@ -13,11 +13,6 @@
         }
     ],
     "provisioners": [
-	 {
-            "type": "file",
-            "source": "/home/mity/Documents/OtusDevops/adastraaero_infra/packer/scripts/mongodb.service",
-            "destination": "/tmp/mongodb.service"
-        },
         {
             "type": "shell",
             "script": "scripts/install_ruby.sh",
