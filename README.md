@@ -7,7 +7,7 @@
 2. Установить Packer.
 3. Создание сервисного аккаунта для Packer в YC.
 4. Подготовка, сборка образа через Packer.
-5. Развертывание VM и образа, установка и запуск приложения.
+5. Развертывание VM из образа, установка и запуск приложения.
 6. Построение bake-образа *.
 7. Автоматизация создания ВМ *.
 
@@ -62,9 +62,101 @@ yc resource-manager folder add-access-binding --id $FOLDER_ID --role editor --se
   
 ### 4. Подготовка, сборка образа через Packer.
 
-Создаем директорию `packer` и внутри файл `ubuntu16.json`, при этом использумем раздел Packer "File Provisioner"
+Создаем директорию `packer` и внутри файл `ubuntu16.json`, при этом использумем раздел Packer "File Provisioner" https://www.packer.io/docs/provisioners/file ,
+т.к. нужно создать и залить в образ unit файл для автозапуска mongodb, всвязи с ограничением доступа к новым версиям  mongodb. 
 
+Соответсвенно файл mongodb.service:   
+
+```  
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+
+[Service]
+User=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongodb.conf
+
+[Install]
+WantedBy=multi-user.target  
+```   
+
+Соотвественно файл ubuntu16.json для packer:
+
+``` 
+{
+    "builders": [
+        {
+            "type": "yandex",
+            "service_account_key_file": "/home/mity/Documents/OtusDevops/key.json",
+            "folder_id": "b1gl9g5f46b3fv1g4ac1",
+            "source_image_family": "ubuntu-1604-lts",
+            "image_name": "reddit-base-{{timestamp}}",
+            "image_family": "reddit-base",
+            "ssh_username": "ubuntu",
+            "platform_id": "standard-v1",
+            "use_ipv4_nat": "true"
+        }
+    ],
+    "provisioners": [
+         {
+            "type": "file",
+            "source": "/home/mity/Documents/OtusDevops/adastraaero_infra/packer/scripts/mongodb.service",
+            "destination": "/tmp/mongodb.service"
+        },
+        {
+            "type": "shell",
+            "script": "scripts/install_ruby.sh",
+            "execute_command": "sudo {{.Path}}"
+        },
+        {
+            "type": "shell",
+            "script": "scripts/install_mongodb.sh",
+            "execute_command": "sudo {{.Path}}"
+        }
+    ]
+}  
+ 
+``` 
+Перед копированием скриптов в папку scrips, внесём изменения в install_mongodb.sh , для перещения unit файла в /etc/systemd/system/ :
+
+``` 
+#!/bin/bash
+sudo cp /tmp/mongodb.service /etc/systemd/system/
+apt-get update
+chown 777 /etc/systemd/system/mongodb.service
+apt install -y mongodb
+systemctl start mongodb
+systemctl enable mongodb
+```   
+
+Сделаем проверку правильности файла ubuntu16.json:
+
+```
+packer validate ./ubuntu16.json
+```
   
-  
-  
+### 5.Развертывание VM из образа, установка и запуск приложения. 
+
+Создаем ВМ на основе нашего образа и ставим reddit:
+
+```
+sudo apt-get update
+sudo apt-get install -y git
+git clone -b monolith https://github.com/express42/reddit.git
+cd reddit && bundle install
+puma -d
+```
+**Параметризирование шаблона**
+
+Создаем `variables.json`, `.gitignore` файлы и для коммита в репозиторий `variables.json.examples`. В gitignore включаем variables.json.
+
+```
+$ cat variables.json.examples
+
+{
+  "key": "key.json",
+  "folder_id": "folder-id_from_config",
+  "image": "ubuntu-1604-lts"
+}
+```
   
