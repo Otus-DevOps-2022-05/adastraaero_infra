@@ -159,6 +159,7 @@ $ cat variables.json.examples
   "image": "ubuntu-1604-lts"
 }
 ```
+</details>   
   
 # Lesson 8 (Terraform - 1)
 ## **Задачи**
@@ -290,4 +291,5 @@ resource "yandex_compute_instance" "app" {
 $ shh ubuntu@51.250.14.183 
 ``` 
 Проверяем, что сервис доступен http://51.250.14.183:9292
-  
+ 
+</details>   
