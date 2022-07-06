@@ -1,4 +1,4 @@
-variable cloud_id {
+variable cloud_id{
   description = "Cloud"
 }
 variable folder_id {
@@ -16,10 +16,10 @@ variable public_key_path {
 variable image_id {
   description = "Disk image"
 }
-variable subnet_id {
+variable subnet_id{
   description = "Subnet"
 }
-variable service_account_key_file {
+variable service_account_key_file{
   description = "/home/mity/Documents/OtusDevops/terraform.json"
 }
 variable private_key_path {
@@ -30,7 +30,7 @@ variable instance_count {
   description = "count instances"
   default     = 1
 }
-# add new variables
+	# add new variables
 variable app_disk_image {
   description = "Disk image for reddit app"
   default     = "reddit-app-base"

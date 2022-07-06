@@ -4,7 +4,8 @@
 #apt-get install -y apt-transport-https ca-certificates
 sudo cp /tmp/mongodb.service /etc/systemd/system/
 apt-get update
-chown 777 /etc/systemd/system/mongodb.service
+echo "Sleep 30 sec for apt update"; sleep 30s; echo "start apt install"
+#chown 777 /etc/systemd/system/mongodb.service
 apt install -y mongodb
 systemctl start mongodb
 systemctl enable mongodb
