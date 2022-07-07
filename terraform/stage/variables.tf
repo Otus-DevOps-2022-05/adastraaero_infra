@@ -1,4 +1,4 @@
-variable cloud_id{
+variable cloud_id {
   description = "Cloud"
 }
 variable folder_id {
@@ -16,10 +16,10 @@ variable public_key_path {
 variable image_id {
   description = "Disk image"
 }
-variable subnet_id{
+variable subnet_id {
   description = "Subnet"
 }
-variable service_account_key_file{
+variable service_account_key_file {
   description = "/home/mity/Documents/OtusDevops/terraform.json"
 }
 variable private_key_path {
@@ -38,18 +38,4 @@ variable app_disk_image {
 variable db_disk_image {
   description = "Disk image for mongodb"
   default     = "reddit-db-base"
-}
-
-variable access_key {
-  description = "key id"
-}
-variable secret_key {
-  description = "secret key"
-}
-variable bucket_name {
-  description = "bucket name"
-}
-variable enable_provision {
-  description = "Enable provisioner"
-  default     = true
 }

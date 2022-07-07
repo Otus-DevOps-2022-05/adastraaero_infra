@@ -159,6 +159,7 @@ $ cat variables.json.examples
   "image": "ubuntu-1604-lts"
 }
 ```
+
 </details>   
   
 # Lesson 8 (Terraform - 1)
@@ -291,5 +292,21 @@ resource "yandex_compute_instance" "app" {
 $ shh ubuntu@51.250.14.183 
 ``` 
 Проверяем, что сервис доступен http://51.250.14.183:9292
+
+
+  
+</details>    
+
+
+
+# Lesson 9 (Terraform - 2)
+## **Задачи**
+
+1. Подготовка инфраструктуры.
+2. Создание 2ух отдельных образов Packer.
+3. Разбиение main.tf на части.
+4. Создание модульной структуры.
+5. Перенос конфигурации в stage и prod.
+6. Cоздание S3 .
  
-</details>   
+  
