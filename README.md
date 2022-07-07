@@ -292,4 +292,146 @@ $ shh ubuntu@51.250.14.183
 ``` 
 Проверяем, что сервис доступен http://51.250.14.183:9292
  
-</details>   
+</details> 
+# Lesson 8 (Terraform - 1)
+## **Задачи**
+
+1. Установка Terraform.
+2. Cоздание новой ветки в репозитории и внутренней файловой структуры.
+3. Создание VM через Terraform и настраиваем переменные.
+
+
+
+## Решение
+<details>
+  <summary>Решение</summary>
+  
+  
+### 1. Установка Terraform.
+  
+Скачивание и распаковка нужной версии.  
+```
+sudo unzip terraform_0.12.8_linux_amd64.zip -d /usr/local/bin
+```
+ 
+Проверка  
+``` 
+$ terraform -v
+Terraform v0.12.8
+```
+
+### 2. Создание новой ветки в репозитории и внутренней файловой структуры.
+
+```   
+git checkout -b terraform-1
+``` 
+редактируем .gitignore:
+
+```   
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+*.tfvars
+.terraform/
+```
+Создаём сервисный аккаунт " terraformacc" и назначаем ему права.
+
+```
+yc config list
+
+SVC_ACCT="terraformac"
+$ FOLDER_ID="my_folder_id"
+$ yc iam service-account create --name $SVC_ACCT --folder-id $FOLDER_ID
+  
+$ ACCT_ID=$(yc iam service-account get $SVC_ACCT | \
+grep ^id | \
+awk '{print $2}')
+$ yc resource-manager folder add-access-binding --id $FOLDER_ID \
+--role editor \
+--service-account-id $ACCT_ID
+```
+  
+Создаём профиль для выполнения операций от имени сервисного аккаунта, указываем ключ, создаём токен.
+  
+```
+yc config profile create my-terraform-profile
+yc config set service-account-key key.json
+yc iam create-token
+```  
+  
+### 3. Создание VM через Terraform и настраиваем переменные.  
+Создаём main.tf, вносим данные из ДЗ и правки для работы:
+
+```   
+provider "yandex" {
+  version                  = 0.35
+  service_account_key_file = var.service_account_key_file
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
+  zone                     = var.zone
+}
+
+resource "yandex_compute_instance" "app" {
+  name  = "reddit-app-${count.index}"
+  count = var.instance_count
+
+  resources {
+    cores  = 2
+    memory = 2
+  }
+
+  boot_disk {
+    initialize_params {
+      # Указать id образа созданного в предыдущем домашем задании
+      image_id = var.image_id
+    }
+  }
+
+  network_interface {
+    # Указан id подсети default-ru-central1-a
+    subnet_id = var.subnet_id
+    nat       = true
+  }
+  metadata = {
+    ssh-keys = "ubuntu:${file(var.public_key_path)}"
+  }
+  connection {
+    type  = "ssh"
+    host  = self.network_interface.0.nat_ip_address
+    user  = "ubuntu"
+    agent = false
+    # путь до приватного ключа
+    private_key = file(var.private_key_path)
+  }
+
+  provisioner "file" {
+    source      = "files/puma.service"
+    destination = "/tmp/puma.service"
+  }
+  provisioner "remote-exec" {
+    script = "files/deploy.sh"
+  }
+}
+``` 
+
+Выполняем terraform plan и terraform apply -auot-approve .
+  
+Проверяем и подклюячаемся:  
+``` 
+ $ terraform show | grep nat_ip_address
+        nat_ip_address = "51.250.14.183"
+$ shh ubuntu@51.250.14.183 
+``` 
+Проверяем, что сервис доступен http://51.250.14.183:9292
+ 
+</details>  
+
+# Lesson 9 (Terraform - 2)
+## **Задачи**
+
+1. Подготовка инфраструктуры.
+2. Создание 2ух отдельных образов Packer.
+3. Разбиение main.tf на части.
+4. Создание модульной структуры.
+5. Перенос конфигурации в stage и prod.
+6. Cоздание S3.
