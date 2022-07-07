@@ -159,7 +159,8 @@ $ cat variables.json.examples
   "image": "ubuntu-1604-lts"
 }
 ```
-</details>  
+
+</details>   
   
 # Lesson 8 (Terraform - 1)
 ## **Задачи**
@@ -292,6 +293,7 @@ $ shh ubuntu@51.250.14.183
 ``` 
 Проверяем, что сервис доступен http://51.250.14.183:9292
 
+
   
 </details>    
 
@@ -307,5 +309,4 @@ $ shh ubuntu@51.250.14.183
 5. Перенос конфигурации в stage и prod.
 6. Cоздание S3 .
  
-  
   
