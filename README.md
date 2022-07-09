@@ -307,5 +307,205 @@ $ shh ubuntu@51.250.14.183
 5. Перенос конфигурации в stage и prod.
 6. Cоздание S3.
  
+ # Lesson 10 (Ansible 1)
+
+## Знакомство с Ansible
+1. Установка и настройка Ansible
+2. inventory and inventory.yml
+3. Playbook
+  
+## Решение
+<details>
+  <summary>Решение</summary>
+    
+### Установка и настройка Ansible
+  
+Установим  Ansible на ubuntu 21.04
+```
+vim requirements.txt
+```
+```  
+pip install ansible>=2.4
+```
+  
+Запустим stage инфраструктуру:
+```
+cd stage && terraform apply
+```
+ 
+```  
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_app = 51.250.88.97
+external_ip_address_db = 51.250.90.52
+```
+
+ ### inventory and inventory.yml
+ создадим inventory файл на основе дз и проверим его работу 
+``` 
+vim ansible/inventory
+appserver ansible_host=51.250.88.97 ansible_user=ubuntu ansible_private_key_file=~/.ssh/id_rsa
+``` 
+  
+проверим его работу 
+``` 
+appserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+``` 
+  
+добавим данные для db server  и проверим
+  
+``` 
+ansible all -i ./inventory -m ping
+
+appserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+dbserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+``` 
+  
+Создадим ansible.cfg и удалим избыточную информацию из inventory
+
+```   
+vim ansible/ansible.cfg:
+
+[defaults]
+inventory = ./inventory
+remote_user = appuser
+private_key_file = ~/.ssh/appuser
+host_key_checking = False
+retry_files_enabled = False
+
+vim ansible/inventory:
+
+
+appserver ansible_host=51.250.88.97
+dbserver ansible_host=51.250.90.52
+``` 
+  
+Проверим работу:
+```   
+ansible dbserver -m command -a uptime
+``` 
+  
+``` 
+dbserver | CHANGED | rc=0 >>
+05:09:08 up 18 min,  1 user,  load average: 0.00, 0.00, 0.00
+``` 
+
+Отредактируем inventory и добавим группы хостов:
+
+```   
+[app]
+appserver ansible_host=51.250.88.97
+
+[db]
+dbserver ansible_host=51.250.90.52
+
+Проверим:
+ansible app -m ping
+
+appserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+``` 
+  
+Создадим inventory.yaml
+
+  
+``` 
+app:
+  hosts:
+    appserver:
+      ansible_host: 51.250.88.97
+
+db:
+  hosts:
+    dbserver:
+      ansible_host: 51.250.90.52 
+
+``` 
+
+Проверим его работу
+  
+
+```   
+ansible all -m ping -i inventory.yml
+
+
+appserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+dbserver | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+   
+ 
+```  
+### Playbook
+
+```    
+vim clone.yml
+
+---
+- name: Clone
+  hosts: app
+  become: true
+  tasks:
+    - name: Clone repo
+      git:
+        repo: https://github.com/express42/reddit.git
+        dest: /home/appuser/reddit
+
+```    
+ 
+```   
+PLAY [Clone] ********************************************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************************************************************************************************************************************************
+ok: [appserver]
+
+TASK [Clone repo] ***************************************************************************************************************************************************************************************************************************************
+changed: [appserver]
+
+PLAY RECAP **********************************************************************************************************************************************************************************************************************************************
+appserver                  : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0    
+```  
+  
+</details>  
+  
+  
+  
+  
   
   
