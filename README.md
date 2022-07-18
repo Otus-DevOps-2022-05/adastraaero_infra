@@ -158,6 +158,7 @@ $ cat variables.json.examples
   "image": "ubuntu-1604-lts"
 }
 ```
+
 </details>
 
 # Lesson 8 (Terraform - 1)
@@ -292,6 +293,7 @@ $ shh ubuntu@51.250.14.183
 Проверяем, что сервис доступен http://51.250.14.183:9292
 
 
+
 </details>
 
 
@@ -304,7 +306,7 @@ $ shh ubuntu@51.250.14.183
 3. Разбиение main.tf на части.
 4. Создание модульной структуры.
 5. Перенос конфигурации в stage и prod.
-6. Cоздание S3.
+6. Cоздание S3 .
 
  # Lesson 10 (Ansible 1)
 
@@ -504,7 +506,6 @@ appserver                  : ok=2    changed=1    unreachable=0    failed=0    s
 </details>
 
 # Lesson 11 (Ansible 2)
-
 1. плейбуки, хендлеры и шаблоны для конфигурации.
 2. один плейбук, один сценарий (play) + один плейбук, но много сценариев + много плейбуков
 3. провижн образов Packer на Ansible-плейбуки
