@@ -1,5 +1,5 @@
-/packer/variables.json
-
+# packer lesson
+variables.json
 
 # terraform-1 lesson
 *.tfstate
@@ -7,3 +7,6 @@
 *.tfstate.backup
 *.tfvars
 .terraform/
+
+# Ansible
+*.retry
