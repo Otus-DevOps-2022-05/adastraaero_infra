@@ -1,0 +1,16 @@
+---
+- name: RubyGit
+  hosts: app
+  become: true
+
+  tasks:
+    - name: Install RubyGit
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      loop:
+        - git
+        - ruby-full
+        - ruby-bundler
+        - build-essential
