@@ -22,9 +22,9 @@
 ```
 git checkout -b packer-base
 
-git mv *.sh config-scripts/
+git mv *.sh config-scripts/ 
 ```
-### 2. Установка Packer
+### 2. Установка Packer 
 ```
 sudo apt install packer
 ```
@@ -36,17 +36,17 @@ packer -v
 ### 3. Создание сервисного аккаунта в yandex.
 Посмотрим и выберем нужный folder-id и проверим, что он активирован.
 ```
-yc resource-manager folder list
+yc resource-manager folder list 
 ```
 Задаем переменные и создаем сервисный аккаунт
-
+  
 ```
 $ SVC_ACCT="<придумайте имя>"
 $ FOLDER_ID="<замените на собственный>"
-$ yc iam service-account create --name $SVC_ACCT --folder-id $FOLDER_ID
+$ yc iam service-account create --name $SVC_ACCT --folder-id $FOLDER_ID 
 ```
 Через Web в YandexCloud - нужный каталог - проверяем, что сервисный аккаунт создался.
-
+  
 Назначаем аккаунту права editor через yc cli:
 ```
 ACCT_ID=$(yc iam service-account get $SVC_ACCT | grep ^id | awk '{print $2}')
@@ -54,20 +54,20 @@ ACCT_ID=$(yc iam service-account get $SVC_ACCT | grep ^id | awk '{print $2}')
 yc resource-manager folder add-access-binding --id $FOLDER_ID --role editor --service-account-id $ACCT_ID
 ```
 Через Web в YandexCloud - нужный каталог - проверяем, что у аккаунта в разделе "Роли в каталоге" стоит значение editor.
-
+  
 Создаём IAM key за пределами репозитория:
+``` 
+ yc iam key create --service-account-id $ACCT_ID --output /my_secret/path/key.json 
 ```
- yc iam key create --service-account-id $ACCT_ID --output /my_secret/path/key.json
-```
-
+  
 ### 4. Подготовка, сборка образа через Packer.
 
 Создаем директорию `packer` и внутри файл `ubuntu16.json`, при этом использумем раздел Packer "File Provisioner" https://www.packer.io/docs/provisioners/file ,
-т.к. нужно создать и залить в образ unit файл для автозапуска mongodb, всвязи с ограничением доступа к новым версиям  mongodb.
+т.к. нужно создать и залить в образ unit файл для автозапуска mongodb, всвязи с ограничением доступа к новым версиям  mongodb. 
 
-Соответсвенно файл mongodb.service:
+Соответсвенно файл mongodb.service:   
 
-```
+```  
 [Unit]
 Description=High-performance, schema-free document-oriented database
 After=network.target
@@ -77,12 +77,12 @@ User=mongodb
 ExecStart=/usr/bin/mongod --quiet --config /etc/mongodb.conf
 
 [Install]
-WantedBy=multi-user.target
-```
+WantedBy=multi-user.target  
+```   
 
 Соотвественно файл ubuntu16.json для packer:
 
-```
+``` 
 {
     "builders": [
         {
@@ -114,12 +114,12 @@ WantedBy=multi-user.target
             "execute_command": "sudo {{.Path}}"
         }
     ]
-}
-
-```
+}  
+ 
+``` 
 Перед копированием скриптов в папку scrips, внесём изменения в install_mongodb.sh , для перещения unit файла в /etc/systemd/system/ :
 
-```
+``` 
 #!/bin/bash
 sudo cp /tmp/mongodb.service /etc/systemd/system/
 apt-get update
@@ -127,15 +127,15 @@ chown 777 /etc/systemd/system/mongodb.service
 apt install -y mongodb
 systemctl start mongodb
 systemctl enable mongodb
-```
+```   
 
 Сделаем проверку правильности файла ubuntu16.json:
 
 ```
 packer validate ./ubuntu16.json
 ```
-
-### 5.Развертывание VM из образа, установка и запуск приложения.
+  
+### 5.Развертывание VM из образа, установка и запуск приложения. 
 
 Создаем ВМ на основе нашего образа и ставим reddit:
 
@@ -159,8 +159,8 @@ $ cat variables.json.examples
   "image": "ubuntu-1604-lts"
 }
 ```
-</details>
-
+</details>  
+  
 # Lesson 8 (Terraform - 1)
 ## **Задачи**
 
@@ -173,29 +173,29 @@ $ cat variables.json.examples
 ## Решение
 <details>
   <summary>Решение</summary>
-
-
+  
+  
 ### 1. Установка Terraform.
-
-Скачивание и распаковка нужной версии.
+  
+Скачивание и распаковка нужной версии.  
 ```
 sudo unzip terraform_0.12.8_linux_amd64.zip -d /usr/local/bin
 ```
-
-Проверка
-```
+ 
+Проверка  
+``` 
 $ terraform -v
 Terraform v0.12.8
 ```
 
 ### 2. Создание новой ветки в репозитории и внутренней файловой структуры.
 
-```
+```   
 git checkout -b terraform-1
-```
+``` 
 редактируем .gitignore:
 
-```
+```   
 *.tfstate
 *.tfstate.*.backup
 *.tfstate.backup
@@ -210,7 +210,7 @@ yc config list
 SVC_ACCT="terraformac"
 $ FOLDER_ID="my_folder_id"
 $ yc iam service-account create --name $SVC_ACCT --folder-id $FOLDER_ID
-
+  
 $ ACCT_ID=$(yc iam service-account get $SVC_ACCT | \
 grep ^id | \
 awk '{print $2}')
@@ -218,19 +218,19 @@ $ yc resource-manager folder add-access-binding --id $FOLDER_ID \
 --role editor \
 --service-account-id $ACCT_ID
 ```
-
+  
 Создаём профиль для выполнения операций от имени сервисного аккаунта, указываем ключ, создаём токен.
-
+  
 ```
 yc config profile create my-terraform-profile
 yc config set service-account-key key.json
 yc iam create-token
-```
-
-### 3. Создание VM через Terraform и настраиваем переменные.
+```  
+  
+### 3. Создание VM через Terraform и настраиваем переменные.  
 Создаём main.tf, вносим данные из ДЗ и правки для работы:
 
-```
+```   
 provider "yandex" {
   version                  = 0.35
   service_account_key_file = var.service_account_key_file
@@ -280,20 +280,20 @@ resource "yandex_compute_instance" "app" {
     script = "files/deploy.sh"
   }
 }
-```
+``` 
 
 Выполняем terraform plan и terraform apply -auot-approve .
-
-Проверяем и подклюячаемся:
-```
+  
+Проверяем и подклюячаемся:  
+``` 
  $ terraform show | grep nat_ip_address
         nat_ip_address = "51.250.14.183"
-$ shh ubuntu@51.250.14.183
-```
+$ shh ubuntu@51.250.14.183 
+``` 
 Проверяем, что сервис доступен http://51.250.14.183:9292
 
-
-</details>
+  
+</details>    
 
 
 
@@ -306,34 +306,34 @@ $ shh ubuntu@51.250.14.183
 4. Создание модульной структуры.
 5. Перенос конфигурации в stage и prod.
 6. Cоздание S3.
-
+ 
  # Lesson 10 (Ansible 1)
 
 ## Знакомство с Ansible
 1. Установка и настройка Ansible
 2. inventory and inventory.yml
 3. Playbook
-
+  
 ## Решение
 <details>
   <summary>Решение</summary>
-
+    
 ### Установка и настройка Ansible
-
+  
 Установим  Ansible на ubuntu 21.04
 ```
 vim requirements.txt
 ```
-```
+```  
 pip install ansible>=2.4
 ```
-
+  
 Запустим stage инфраструктуру:
 ```
 cd stage && terraform apply
 ```
-
-```
+ 
+```  
 Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
 Outputs:
@@ -343,14 +343,14 @@ external_ip_address_db = 51.250.90.52
 ```
 
  ### inventory and inventory.yml
- создадим inventory файл на основе дз и проверим его работу
-```
+ создадим inventory файл на основе дз и проверим его работу 
+``` 
 vim ansible/inventory
 appserver ansible_host=51.250.88.97 ansible_user=ubuntu ansible_private_key_file=~/.ssh/id_rsa
-```
-
-проверим его работу
-```
+``` 
+  
+проверим его работу 
+``` 
 appserver | SUCCESS => {
     "ansible_facts": {
         "discovered_interpreter_python": "/usr/bin/python3"
@@ -358,11 +358,11 @@ appserver | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
-```
-
+``` 
+  
 добавим данные для db server  и проверим
-
-```
+  
+``` 
 ansible all -i ./inventory -m ping
 
 appserver | SUCCESS => {
@@ -379,11 +379,11 @@ dbserver | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
-```
-
+``` 
+  
 Создадим ansible.cfg и удалим избыточную информацию из inventory
 
-```
+```   
 vim ansible/ansible.cfg:
 
 [defaults]
@@ -398,21 +398,21 @@ vim ansible/inventory:
 
 appserver ansible_host=51.250.88.97
 dbserver ansible_host=51.250.90.52
-```
-
+``` 
+  
 Проверим работу:
-```
+```   
 ansible dbserver -m command -a uptime
-```
-
-```
+``` 
+  
+``` 
 dbserver | CHANGED | rc=0 >>
 05:09:08 up 18 min,  1 user,  load average: 0.00, 0.00, 0.00
-```
+``` 
 
 Отредактируем inventory и добавим группы хостов:
 
-```
+```   
 [app]
 appserver ansible_host=51.250.88.97
 
@@ -430,12 +430,12 @@ appserver | SUCCESS => {
     "ping": "pong"
 }
 
-```
-
+``` 
+  
 Создадим inventory.yaml
 
-
-```
+  
+``` 
 app:
   hosts:
     appserver:
@@ -444,14 +444,14 @@ app:
 db:
   hosts:
     dbserver:
-      ansible_host: 51.250.90.52
+      ansible_host: 51.250.90.52 
 
-```
+``` 
 
 Проверим его работу
+  
 
-
-```
+```   
 ansible all -m ping -i inventory.yml
 
 
@@ -469,12 +469,12 @@ dbserver | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
-
-
-```
+   
+ 
+```  
 ### Playbook
 
-```
+```    
 vim clone.yml
 
 ---
@@ -487,9 +487,9 @@ vim clone.yml
         repo: https://github.com/express42/reddit.git
         dest: /home/appuser/reddit
 
-```
-
-```
+```    
+ 
+```   
 PLAY [Clone] ********************************************************************************************************************************************************************************************************************************************
 
 TASK [Gathering Facts] **********************************************************************************************************************************************************************************************************************************
@@ -499,23 +499,17 @@ TASK [Clone repo] **************************************************************
 changed: [appserver]
 
 PLAY RECAP **********************************************************************************************************************************************************************************************************************************************
-appserver                  : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-```
-
-</details>
-
+appserver                  : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0    
+```  
+  
+</details>  
+  
 # Lesson 11 (Ansible 2)
 ## **Задачи**
 
 1. плейбуки, хендлеры и шаблоны для конфигурации.
 2. один плейбук, один сценарий (play) + один плейбук, но много сценариев + много плейбуков
 3. Рпровижн образов Packer на Ansible-плейбуки
-
-
-# Lesson 12 (Ansible 3) работа с ролями и окружениями
-## **Задачи**
-1. Создать инфраструктуру под роли.
-2. Перенести переменные окружения.
-3. Организовать директория ansible согласно Best practices.
-4. Установить роль jdauphant.nginx используя Ansible Galaxy.
-5. Создать и зашифровать файлы с паролями используя Ansible vault.
+  
+  
+  
