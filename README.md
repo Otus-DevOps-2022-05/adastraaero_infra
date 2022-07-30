@@ -520,3 +520,9 @@ appserver                  : ok=2    changed=1    unreachable=0    failed=0    s
 3. Организовать директория ansible согласно Best practices.
 4. Установить роль jdauphant.nginx используя Ansible Galaxy.
 5. Создать и зашифровать файлы с паролями используя Ansible vault.
+
+# Lesson 13 (Ansible 4) Локальная разработка и тестирование Vagrant
+## **Задачи**
+1. Перенастройка ролей и провиженинг Vagrant
+2. Molecule тестирование
+3. переключение сборки образов packer на роли
